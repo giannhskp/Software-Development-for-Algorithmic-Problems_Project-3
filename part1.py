@@ -44,7 +44,7 @@ else:
     print('Number of time series selected was not given, default value is: ', number_of_tseries)
 
 # data_loc = r'input_files/nasdaq2007_17.csv'
-model_loc = r'models/part1_200curves.h5'
+model_loc = r'models/part1/part1_all_curves.h5'
 dataset = pd.read_csv(data_loc, index_col=0, sep='\t', header=None)
 
 INPUT_SIZE = dataset.shape[0]
@@ -64,15 +64,15 @@ test_set = dataset.iloc[:, TRAIN_LENGTH+1:TRAIN_LENGTH*2+1].values
 
 sc = MinMaxScaler(feature_range=(0, 1))
 
-# model = keras.models.load_model(model_loc)
+model = keras.models.load_model(model_loc)
 # load json and create model
-json_file = open('models/part1_200curves.json', 'r')
-loaded_model_json = json_file.read()
-json_file.close()
-model = keras.models.model_from_json(loaded_model_json)
-# load weights into new model
-model.load_weights('models/part1_200curves.h5')
-print("Loaded model from disk")
+# json_file = open('models/part1_200curves.json', 'r')
+# loaded_model_json = json_file.read()
+# json_file.close()
+# model = keras.models.model_from_json(loaded_model_json)
+# # load weights into new model
+# model.load_weights('models/part1_200curves.h5')
+# print("Loaded model from disk")
 
 for curve in PREDICT_CURVES:
     dataset_train = dataset.iloc[curve:curve+1, 1:TRAIN_LENGTH+1]
@@ -81,21 +81,39 @@ for curve in PREDICT_CURVES:
     dataset_total = pd.concat((dataset_train, dataset_test), axis=1)
     inputs = dataset_total.iloc[:, dataset_total.shape[1] - dataset_test.shape[1] - WINDOW_SIZE:].values
     inputs = inputs.reshape(-1, 1)
-    inputs = sc.fit_transform(inputs)
+    # inputs = sc.fit_transform(inputs)
     X_test = []
+    scaler_list = []
     for i in range(WINDOW_SIZE, inputs.shape[0]):
-        X_test.append(inputs[i-WINDOW_SIZE:i, 0])
+        temp_scaler = MinMaxScaler(feature_range=(0, 1))
+        transformed = temp_scaler.fit_transform(inputs[i-WINDOW_SIZE:i, 0].reshape(-1, 1))
+        scaler_list.append(temp_scaler)
+        X_test.append(transformed)
     X_test = np.array(X_test)
     X_test = np.reshape(X_test, (X_test.shape[0], X_test.shape[1], 1))
 
     predicted_stock_price = model.predict(X_test)
-    predicted_stock_price = sc.inverse_transform(predicted_stock_price)
+    unscaled_list = []
+    for i, x in enumerate(predicted_stock_price):
+        t_scale = scaler_list[i]
+        inversed = np.array(t_scale.inverse_transform(x.reshape(-1, 1)))
+        unscaled_list.append(inversed)
+    unscaled = np.array(unscaled_list)
+    unscaled = unscaled.reshape(-1, 1)
+    predicted_stock_price = unscaled
 
     # if curve < MAX_MODELS_FROM_1_CURVE:
     #     temp_model_loc = r'models/part1_curve'+str(curve)+'.h5'
     #     model_from_one_curve = keras.models.load_model(temp_model_loc)
     #     predicted_stock_price_2 = model_from_one_curve.predict(X_test)
-    #     predicted_stock_price_2 = sc.inverse_transform(predicted_stock_price_2)
+    #     unscaled_list = []
+    #     for i, x in enumerate(predicted_stock_price_2):
+    #         t_scale = scaler_list[i]
+    #         inversed = np.array(t_scale.inverse_transform(x.reshape(-1, 1)))
+    #         unscaled_list.append(inversed)
+    #     unscaled = np.array(unscaled_list)
+    #     unscaled = unscaled.reshape(-1, 1)
+    #     predicted_stock_price_2 = unscaled
 
     result_size = X_test.shape[0]
     time = list(range(1, result_size+1))

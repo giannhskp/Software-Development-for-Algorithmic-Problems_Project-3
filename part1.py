@@ -1,3 +1,4 @@
+import sys, getopt
 import pandas as pd
 import matplotlib.pyplot as plt
 import math
@@ -15,8 +16,31 @@ from sklearn.preprocessing import MinMaxScaler
 # from sklearn.model_selection import train_test_split
 # from keras.callbacks import EarlyStopping
 
-data_loc = r'../nasdaq2007_17.csv'
-model_loc = r'part1_model'
+argv = sys.argv[1:]
+data_loc = ''
+number_of_tseries = -1
+try:
+    opts, args = getopt.getopt(argv, "d:n:")
+except getopt.GetoptError:
+    print('Wrong Arguments! \n Usage: $python forecast.py -d <dataset> -n <number of time series selected>')
+    sys.exit(2)
+for opt, arg in opts:
+    if opt == "-d":
+        data_loc = arg
+    elif opt == "-n":
+        number_of_tseries = arg
+if data_loc != '':
+    print('Dataset file is ', data_loc)
+else:
+    print('Dataset file was not given! \n Usage: $python forecast.py -d <dataset> -n <number of time series selected>')
+if number_of_tseries > 0:
+    print('Number of time series selected is: ', number_of_tseries)
+else:
+    number_of_tseries = 5
+    print('Number of time series selected was not given, default value is: ', number_of_tseries)
+
+# data_loc = r'input_files/nasdaq2007_17.csv'
+model_loc = r'models/part1_200curves.h5'
 dataset = pd.read_csv(data_loc, index_col=0, sep='\t', header=None)
 
 INPUT_SIZE = dataset.shape[0]
@@ -27,7 +51,7 @@ BATCH_SIZE = 2048
 LEARNING_RATE = 0.01
 WINDOW_SIZE = 60
 SHUFFLE_TRAIN_DATA = True
-PREDICT_CURVES = list(range(INPUT_SIZE))
+PREDICT_CURVES = list(range(number_of_tseries))
 TRAIN_CURVES = list(range(INPUT_SIZE))
 
 training_set = dataset.iloc[:, 1:TRAIN_LENGTH+1].values
@@ -35,7 +59,15 @@ test_set = dataset.iloc[:, TRAIN_LENGTH+1:TRAIN_LENGTH*2+1].values
 
 sc = MinMaxScaler(feature_range=(0, 1))
 
-model = keras.models.load_model(model_loc)
+# model = keras.models.load_model(model_loc)
+# load json and create model
+json_file = open('models/part1_200curves.json', 'r')
+loaded_model_json = json_file.read()
+json_file.close()
+model = keras.models.model_from_json(loaded_model_json)
+# load weights into new model
+model.load_weights('models/part1_200curves.h5')
+print("Loaded model from disk")
 
 for curve in PREDICT_CURVES:
     dataset_train = dataset.iloc[curve:curve+1, 1:TRAIN_LENGTH+1]

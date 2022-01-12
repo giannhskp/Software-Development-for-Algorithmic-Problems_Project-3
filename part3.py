@@ -61,12 +61,12 @@ for curve in range(queryset.shape[0]):
     original_curve = queryset.iloc[curve:curve+1, :].values
     original_curve = original_curve.reshape(-1, 1)
     df = pd.DataFrame(np.array(original_curve)[:, 0], columns=['price'])
-    loop_range = range(0, math.floor((len(df['price'])-1)/WINDOW_SIZE))
+    loop_range = range(0, math.floor((len(df['price']))/WINDOW_SIZE))
     scaler_list = []
     transformed_list = []
     for i in loop_range:
         temp_scaler = MinMaxScaler()
-        transformed = np.array(temp_scaler.fit_transform(df['price'].values[i*WINDOW_SIZE+1:(i+1)*WINDOW_SIZE+1].reshape(-1, 1)))
+        transformed = np.array(temp_scaler.fit_transform(df['price'].values[i*WINDOW_SIZE:(i+1)*WINDOW_SIZE].reshape(-1, 1)))
 
         scaler_list.append(temp_scaler)
         transformed_list.append(transformed)
@@ -94,12 +94,12 @@ for curve in range(dataset.shape[0]):
     original_curve = dataset.iloc[curve:curve+1, :].values
     original_curve = original_curve.reshape(-1, 1)
     df = pd.DataFrame(np.array(original_curve)[:, 0], columns=['price'])
-    loop_range = range(0, math.floor((len(df['price'])-1)/WINDOW_SIZE))
+    loop_range = range(0, math.floor((len(df['price']))/WINDOW_SIZE))
     scaler_list = []
     transformed_list = []
     for i in loop_range:
         temp_scaler = MinMaxScaler()
-        transformed = np.array(temp_scaler.fit_transform(df['price'].values[i*WINDOW_SIZE+1:(i+1)*WINDOW_SIZE+1].reshape(-1, 1)))
+        transformed = np.array(temp_scaler.fit_transform(df['price'].values[i*WINDOW_SIZE:(i+1)*WINDOW_SIZE].reshape(-1, 1)))
 
         scaler_list.append(temp_scaler)
         transformed_list.append(transformed)

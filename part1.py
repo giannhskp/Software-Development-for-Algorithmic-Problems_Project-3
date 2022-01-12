@@ -65,14 +65,6 @@ test_set = dataset.iloc[:, TRAIN_LENGTH+1:TRAIN_LENGTH*2+1].values
 sc = MinMaxScaler(feature_range=(0, 1))
 
 model = keras.models.load_model(model_loc)
-# load json and create model
-# json_file = open('models/part1_200curves.json', 'r')
-# loaded_model_json = json_file.read()
-# json_file.close()
-# model = keras.models.model_from_json(loaded_model_json)
-# # load weights into new model
-# model.load_weights('models/part1_200curves.h5')
-# print("Loaded model from disk")
 
 for curve in PREDICT_CURVES:
     dataset_train = dataset.iloc[curve:curve+1, 1:TRAIN_LENGTH+1]

@@ -25,18 +25,14 @@ data_loc = ''
 number_of_tseries = -1
 THRESHOLD = -1
 THRESHOLD_BEST_VALUE = 2.25
-try:
-    opts, args = getopt.getopt(argv, "d:n:m:")
-except getopt.GetoptError:
-    print('Wrong Arguments! \n Usage: $python forecast.py -d <dataset> -n <number of time series selected>')
-    sys.exit(2)
-for opt, arg in opts:
-    if opt == "-d":
-        data_loc = arg
-    elif opt == "-n":
-        number_of_tseries = int(arg)
-    elif opt == "-mae":
-        THRESHOLD = int(arg)
+
+for i, arg in enumerate(argv):
+    if arg == "-d":
+        data_loc = argv[i+1]
+    elif arg == "-n":
+        number_of_tseries = int(argv[i+1])
+    elif arg == "-mae":
+        THRESHOLD = int(argv[i+1])
 if data_loc != '':
     print('Dataset file is ', data_loc)
 else:

@@ -1,8 +1,11 @@
-import sys, getopt
+import sys
+import os
+import getopt
 import pandas as pd
 import matplotlib.pyplot as plt
 import math
 import keras
+# import tensorflow as tf
 import numpy as np
 # from keras.models import Sequential
 # from keras.layers import Dense
@@ -16,6 +19,7 @@ from sklearn.preprocessing import MinMaxScaler
 # from sklearn.model_selection import train_test_split
 # from keras.callbacks import EarlyStopping
 
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 argv = sys.argv[1:]
 data_loc = ''
 number_of_tseries = -1
@@ -28,7 +32,7 @@ for opt, arg in opts:
     if opt == "-d":
         data_loc = arg
     elif opt == "-n":
-        number_of_tseries = arg
+        number_of_tseries = int(arg)
 if data_loc != '':
     print('Dataset file is ', data_loc)
 else:
@@ -53,6 +57,7 @@ WINDOW_SIZE = 60
 SHUFFLE_TRAIN_DATA = True
 PREDICT_CURVES = list(range(number_of_tseries))
 TRAIN_CURVES = list(range(INPUT_SIZE))
+MAX_MODELS_FROM_1_CURVE = 20
 
 training_set = dataset.iloc[:, 1:TRAIN_LENGTH+1].values
 test_set = dataset.iloc[:, TRAIN_LENGTH+1:TRAIN_LENGTH*2+1].values
@@ -86,6 +91,12 @@ for curve in PREDICT_CURVES:
     predicted_stock_price = model.predict(X_test)
     predicted_stock_price = sc.inverse_transform(predicted_stock_price)
 
+    # if curve < MAX_MODELS_FROM_1_CURVE:
+    #     temp_model_loc = r'models/part1_curve'+str(curve)+'.h5'
+    #     model_from_one_curve = keras.models.load_model(temp_model_loc)
+    #     predicted_stock_price_2 = model_from_one_curve.predict(X_test)
+    #     predicted_stock_price_2 = sc.inverse_transform(predicted_stock_price_2)
+
     result_size = X_test.shape[0]
     time = list(range(1, result_size+1))
     f = plt.figure()
@@ -93,9 +104,11 @@ for curve in PREDICT_CURVES:
     f.set_figheight(4)
     plt.plot(time, test_set[curve], color='red', label='Real Curve')
     plt.plot(time, predicted_stock_price, color='blue', label='Predicted Curve')
-    plt.xticks(np.arange(0, result_size, 50))
+    # if curve < MAX_MODELS_FROM_1_CURVE:
+    #     plt.plot(time, predicted_stock_price_2, color='green', label='Predicted Curve from one-train-curve model')
+    plt.xticks(np.arange(0, result_size, 50), rotation=70)
     plt.title('Prediction for curve: '+str(dataset.index[curve]))
     plt.xlabel('Time')
     plt.ylabel('Value')
     plt.legend()
-    plt.show()
+plt.show()

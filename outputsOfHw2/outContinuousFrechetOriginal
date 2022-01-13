@@ -1,0 +1,63 @@
+Query x:
+Approximate Nearest neighbor: lvlt
+True Nearest neighbor: was not computed
+distanceApproximate: 77.136000
+distanceTrue: was not computed
+
+Query xel:
+Approximate Nearest neighbor: cms
+True Nearest neighbor: was not computed
+distanceApproximate: 6.132900
+distanceTrue: was not computed
+
+Query xl:
+Approximate Nearest neighbor: sti
+True Nearest neighbor: was not computed
+distanceApproximate: 20.366000
+distanceTrue: was not computed
+
+Query xlnx:
+Approximate Nearest neighbor: bax
+True Nearest neighbor: was not computed
+distanceApproximate: 13.646000
+distanceTrue: was not computed
+
+Query xom:
+Approximate Nearest neighbor: chrw
+True Nearest neighbor: was not computed
+distanceApproximate: 13.288621
+distanceTrue: was not computed
+
+Query xray:
+Approximate Nearest neighbor: pcar
+True Nearest neighbor: was not computed
+distanceApproximate: 9.091000
+distanceTrue: was not computed
+
+Query xrx:
+Approximate Nearest neighbor: exc
+True Nearest neighbor: was not computed
+distanceApproximate: 15.187000
+distanceTrue: was not computed
+
+Query yum:
+Approximate Nearest neighbor: tmk
+True Nearest neighbor: was not computed
+distanceApproximate: 8.011000
+distanceTrue: was not computed
+
+Query zbh:
+Approximate Nearest neighbor: adp
+True Nearest neighbor: was not computed
+distanceApproximate: 27.372734
+distanceTrue: was not computed
+
+Query zion:
+Approximate Nearest neighbor: sti
+True Nearest neighbor: was not computed
+distanceApproximate: 12.830000
+distanceTrue: was not computed
+
+tApproximateAverage: 650.603310 seconds
+tTrueAverage: True Distances were not computed
+Min/Max Approximation Factor are not defined without distanceTrue

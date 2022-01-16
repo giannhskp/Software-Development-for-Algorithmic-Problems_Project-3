@@ -5,19 +5,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import math
 import keras
-# import tensorflow as tf
 import numpy as np
-# from keras.models import Sequential
-# from keras.layers import Dense
-# from keras.layers import LSTM
-# from keras.layers import Dropout
-# from keras.layers import *
-# from tensorflow.keras.optimizers import Adam
 from sklearn.preprocessing import StandardScaler
-# from sklearn.metrics import mean_squared_error
-# from sklearn.metrics import mean_absolute_error
-# from sklearn.model_selection import train_test_split
-# from keras.callbacks import EarlyStopping
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 argv = sys.argv[1:]
@@ -36,7 +25,7 @@ for i, arg in enumerate(argv):
 if data_loc != '':
     print('Dataset file is ', data_loc)
 else:
-    print('Dataset file was not given! \n Usage: $python forecast.py -d <dataset> -n <number of time series selected>')
+    print('Dataset file was not given! \n Usage: $python detect.py -d <dataset> -n <number of time series selected> -mae <error value as double>')
 if number_of_tseries > 0:
     print('Number of time series selected is: ', number_of_tseries)
 else:
@@ -104,7 +93,6 @@ for curve in PREDICT_CURVES:
     dataset_total = pd.concat((dataset_train, dataset_test), axis=1)
     inputs = dataset_total.iloc[:, dataset_total.shape[1] - dataset_test.shape[1] - WINDOW_SIZE:].values
     inputs = inputs.reshape(-1, 1)
-    # inputs = sc.transform(inputs)
     X_test = []
     for i in range(WINDOW_SIZE, inputs.shape[0]):
         x_transformed = sc.fit_transform(inputs[i-WINDOW_SIZE:i, 0].reshape(-1, 1))
@@ -124,17 +112,6 @@ for curve in PREDICT_CURVES:
 
     result_size = X_test.shape[0]
     time = list(range(1, result_size+1))
-    # f = plt.figure()
-    # f.set_figwidth(20)
-    # f.set_figheight(5)
-    # plt.plot(time, test_score_df.threshold, color='red', label='Threshold')
-    # plt.plot(time, test_score_df.loss, color='blue', label='Loss')
-    # plt.xticks(np.arange(0, result_size, 25), rotation=70)
-    # plt.title('Loss vs Threshold for curve: '+str(dataset.index[curve]))
-    # plt.xlabel('Time')
-    # plt.ylabel('Loss')
-    # plt.legend()
-    # plt.show()
 
     anomalies = test_score_df[test_score_df.anomaly == True]
     anomalies_indexes = anomalies.index-test_score_df.index[0]

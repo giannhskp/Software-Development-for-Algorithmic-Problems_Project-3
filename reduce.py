@@ -5,19 +5,8 @@ import matplotlib.pyplot as plt
 import math
 import random
 import keras
-# import tensorflow as tf
 import numpy as np
-# from keras.models import Sequential
-# from keras.layers import Dense
-# from keras.layers import LSTM
-# from keras.layers import Dropout
-# from keras.layers import *
-# from tensorflow.keras.optimizers import Adam
 from sklearn.preprocessing import MinMaxScaler
-# from sklearn.metrics import mean_squared_error
-# from sklearn.metrics import mean_absolute_error
-# from sklearn.model_selection import train_test_split
-# from keras.callbacks import EarlyStopping
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 argv = sys.argv[1:]

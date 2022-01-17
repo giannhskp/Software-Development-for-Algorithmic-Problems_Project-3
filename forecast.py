@@ -7,6 +7,12 @@ import math
 import keras
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
+from keras.callbacks import EarlyStopping
+from keras.models import Sequential
+from keras.layers import Dense
+from keras.layers import LSTM
+from keras.layers import Dropout
+from tensorflow.keras.optimizers import Adam
 
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
@@ -37,6 +43,9 @@ else:
 model_loc = r'models/part1/part1_all_curves.h5'
 dataset = pd.read_csv(data_loc, index_col=0, sep='\t', header=None)
 
+TRAIN_NEW_MODEL = False
+PRINT_1_CURVE_MODELS_RESULTS = True
+
 INPUT_SIZE = dataset.shape[0]
 SERIES_LENGTH = dataset.shape[1]-1
 TRAIN_LENGTH = math.floor(5*SERIES_LENGTH/10)
@@ -47,9 +56,64 @@ MAX_MODELS_FROM_1_CURVE = 20
 training_set = dataset.iloc[:, 1:TRAIN_LENGTH+1].values
 test_set = dataset.iloc[:, TRAIN_LENGTH+1:TRAIN_LENGTH*2+1].values
 
-sc = MinMaxScaler(feature_range=(0, 1))
+if TRAIN_NEW_MODEL:
+    EPOCHS = 5
+    BATCH_SIZE = 2048
+    LEARNING_RATE = 0.01
+    SHUFFLE_TRAIN_DATA = True
+    # scale train data
+    TRAIN_CURVES = list(range(INPUT_SIZE))
+    training_set_reshaped = training_set[TRAIN_CURVES].reshape(-1, 1)
 
-model = keras.models.load_model(model_loc)
+    sc = MinMaxScaler(feature_range=(0, 1))  # initialize scaler
+
+    X_train = []
+    y_train = []
+    training_size = training_set_reshaped.shape[0]
+    for i in range(WINDOW_SIZE, training_size):
+        sc.fit(training_set_reshaped[i-WINDOW_SIZE:i+1, 0].reshape(-1, 1))
+        x_transformed = sc.transform(training_set_reshaped[i-WINDOW_SIZE:i, 0].reshape(-1, 1))
+        y_transformed = sc.transform(training_set_reshaped[i, 0].reshape(-1, 1))
+        X_train.append(x_transformed)
+        y_train.append(y_transformed)
+    X_train, y_train = np.array(X_train), np.array(y_train)
+    X_train = np.reshape(X_train, (X_train.shape[0], X_train.shape[1], 1))
+
+    model = Sequential()
+    # Adding the first LSTM layer and some Dropout regularisation
+    model.add(LSTM(units=128, return_sequences=True, input_shape=(WINDOW_SIZE, 1)))
+    model.add(Dropout(0.2))
+    # Adding a second LSTM layer and some Dropout regularisation
+    model.add(LSTM(units=96, return_sequences=True))
+    model.add(Dropout(0.2))
+    # Adding a third LSTM layer and some Dropout regularisation
+    model.add(LSTM(units=64, return_sequences=True))
+    model.add(Dropout(0.2))
+    # Adding a fourth LSTM layer and some Dropout regularisation
+    model.add(LSTM(units=32))
+    model.add(Dropout(0.2))
+    # Adding the output layer
+    model.add(Dense(units=1))
+
+    # Compiling the RNN
+    optimizer = Adam(learning_rate=LEARNING_RATE)
+    model.compile(optimizer=optimizer, loss='mean_squared_error')
+
+    # Fitting the RNN to the Training set
+    history = model.fit(X_train, y_train,
+                        epochs=EPOCHS,
+                        batch_size=BATCH_SIZE,
+                        shuffle=SHUFFLE_TRAIN_DATA,
+                        validation_split=0.1,
+                        callbacks=[EarlyStopping(monitor='val_loss', patience=3, mode='min')]
+                        )
+    model.save('part1_new_model.h5')  # creates a HDF5 file 'part1_new_model.h5'
+else:
+    # load saved trained model
+    model = keras.models.load_model(model_loc)
+
+
+sc = MinMaxScaler(feature_range=(0, 1))  # initialize scaler
 
 for curve in PREDICT_CURVES:
     dataset_train = dataset.iloc[curve:curve+1, 1:TRAIN_LENGTH+1]
@@ -79,7 +143,7 @@ for curve in PREDICT_CURVES:
     unscaled = unscaled.reshape(-1, 1)
     predicted_stock_price = unscaled
 
-    if curve < MAX_MODELS_FROM_1_CURVE:
+    if curve < MAX_MODELS_FROM_1_CURVE and PRINT_1_CURVE_MODELS_RESULTS:
         temp_model_loc = r'models/part1/one_curve_models/part1_curve'+str(curve)+'.h5'
         model_from_one_curve = keras.models.load_model(temp_model_loc)
         predicted_stock_price_2 = model_from_one_curve.predict(X_test)
@@ -99,7 +163,7 @@ for curve in PREDICT_CURVES:
     f.set_figheight(4)
     plt.plot(time, test_set[curve], color='red', label='Real Curve')
     plt.plot(time, predicted_stock_price, color='blue', label='Predicted Curve')
-    if curve < MAX_MODELS_FROM_1_CURVE:
+    if curve < MAX_MODELS_FROM_1_CURVE and PRINT_1_CURVE_MODELS_RESULTS:
         plt.plot(time, predicted_stock_price_2, color='green', label='Predicted Curve from one-train-curve model')
     plt.xticks(np.arange(0, result_size, 50), rotation=70)
     plt.title('Prediction for curve: '+str(dataset.index[curve]))

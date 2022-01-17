@@ -1,0 +1,64 @@
+Query x:
+Approximate Nearest neighbor: ceco
+True Nearest neighbor: rig
+distanceApproximate: 1156.289535
+distanceTrue: 508.201510
+
+Query xel:
+Approximate Nearest neighbor: cce
+True Nearest neighbor: t
+distanceApproximate: 117.771682
+distanceTrue: 113.902907
+
+Query xl:
+Approximate Nearest neighbor: fitb
+True Nearest neighbor: sti
+distanceApproximate: 568.272824
+distanceTrue: 300.185506
+
+Query xlnx:
+Approximate Nearest neighbor: snps
+True Nearest neighbor: snps
+distanceApproximate: 166.470970
+distanceTrue: 166.470970
+
+Query xom:
+Approximate Nearest neighbor: axp
+True Nearest neighbor: slb
+distanceApproximate: 559.671548
+distanceTrue: 315.598228
+
+Query xray:
+Approximate Nearest neighbor: aep
+True Nearest neighbor: pcg
+distanceApproximate: 154.115096
+distanceTrue: 146.488566
+
+Query xrx:
+Approximate Nearest neighbor: pfg
+True Nearest neighbor: kss
+distanceApproximate: 407.798466
+distanceTrue: 338.931935
+
+Query yum:
+Approximate Nearest neighbor: dri
+True Nearest neighbor: gis
+distanceApproximate: 228.175629
+distanceTrue: 216.254398
+
+Query zbh:
+Approximate Nearest neighbor: pep
+True Nearest neighbor: ups
+distanceApproximate: 531.487382
+distanceTrue: 354.393539
+
+Query zion:
+Approximate Nearest neighbor: txt
+True Nearest neighbor: sti
+distanceApproximate: 613.397435
+distanceTrue: 242.262461
+
+tApproximateAverage: 0.000055 seconds
+tTrueAverage: 0.000459 seconds
+Max Approximation Factor: 2.531954
+Min Approximation Factor: 1.000000

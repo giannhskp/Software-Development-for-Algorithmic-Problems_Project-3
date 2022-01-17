@@ -1,0 +1,64 @@
+Query x:
+Approximate Nearest neighbor: ncr
+True Nearest neighbor: rig
+distanceApproximate: 1943.494794
+distanceTrue: 948.083083
+
+Query xel:
+Approximate Nearest neighbor: cce
+True Nearest neighbor: t
+distanceApproximate: 214.303045
+distanceTrue: 210.812841
+
+Query xl:
+Approximate Nearest neighbor: adm
+True Nearest neighbor: sti
+distanceApproximate: 1523.018049
+distanceTrue: 560.961987
+
+Query xlnx:
+Approximate Nearest neighbor: pki
+True Nearest neighbor: snps
+distanceApproximate: 331.205943
+distanceTrue: 306.839476
+
+Query xom:
+Approximate Nearest neighbor: hsic
+True Nearest neighbor: slb
+distanceApproximate: 1654.617272
+distanceTrue: 586.204632
+
+Query xray:
+Approximate Nearest neighbor: msa
+True Nearest neighbor: pcg
+distanceApproximate: 476.102457
+distanceTrue: 274.592610
+
+Query xrx:
+Approximate Nearest neighbor: pfg
+True Nearest neighbor: kss
+distanceApproximate: 756.264209
+distanceTrue: 627.549170
+
+Query yum:
+Approximate Nearest neighbor: emn
+True Nearest neighbor: gis
+distanceApproximate: 710.571512
+distanceTrue: 402.687561
+
+Query zbh:
+Approximate Nearest neighbor: antm
+True Nearest neighbor: ups
+distanceApproximate: 1342.020735
+distanceTrue: 669.378698
+
+Query zion:
+Approximate Nearest neighbor: lamr
+True Nearest neighbor: sti
+distanceApproximate: 1292.784710
+distanceTrue: 445.542967
+
+tApproximateAverage: 0.000149 seconds
+tTrueAverage: 0.001650 seconds
+Max Approximation Factor: 2.901594
+Min Approximation Factor: 1.016556

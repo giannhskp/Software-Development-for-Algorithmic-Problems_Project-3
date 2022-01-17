@@ -7,6 +7,13 @@ import random
 import keras
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
+from keras.layers import Input
+from keras.layers import Conv1D
+from keras.layers import MaxPooling1D
+from keras.layers import UpSampling1D
+from keras.models import Model
+from tensorflow.keras.optimizers import Adam
+
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 argv = sys.argv[1:]
@@ -37,11 +44,75 @@ else:
 dataset = pd.read_csv(data_loc, index_col=0, sep='\t', header=None)
 queryset = pd.read_csv(query_loc, index_col=0, sep='\t', header=None)
 
+TRAIN_NEW_MODEL = False
 encoder_loc = 'models/part3/part3_encoder.h5'
 autoencoder_loc = 'models/part3/part3_autoencoder.h5'
 
-encoder = keras.models.load_model(encoder_loc, compile=False)
-autoencoder = keras.models.load_model(autoencoder_loc)
+if TRAIN_NEW_MODEL:
+    print('Training new model...')
+    INPUT_SIZE = dataset.shape[0]
+    SERIES_LENGTH = dataset.shape[1]-1
+    TRAIN_LENGTH = math.floor(19*SERIES_LENGTH/20)
+    EPOCHS = 20
+    BATCH_SIZE = 512
+    LEARNING_RATE = 0.0001
+    WINDOW_SIZE = 10
+    SHUFFLE_TRAIN_DATA = True
+    TRAIN_CURVES = list(range(INPUT_SIZE))
+
+    training_set = dataset.iloc[:, 1:TRAIN_LENGTH+1].values
+    test_set = dataset.iloc[:, TRAIN_LENGTH+1:TRAIN_LENGTH*2+1].values
+
+    scaler = MinMaxScaler()
+
+    x_test_list = []
+    x_train_list = []
+    for curve in TRAIN_CURVES:
+        dataset_train = dataset.iloc[curve:curve+1, 1:TRAIN_LENGTH+1].values
+        dataset_train = dataset_train.reshape(-1, 1)
+        dataset_test = dataset.iloc[curve:curve+1, TRAIN_LENGTH+1:].values
+        dataset_test = dataset_test.reshape(-1, 1)
+
+        df = pd.DataFrame(np.array(dataset_train)[:, 0], columns=['price'])
+        x_train_list = x_train_list + ([scaler.fit_transform(df['price'].values[i-WINDOW_SIZE:i].reshape(-1, 1)) for i in (range(WINDOW_SIZE, len(df['price'])))])
+
+        df_test = pd.DataFrame(np.array(dataset_test)[:, 0], columns=['price'])
+        x_test_list = x_test_list + ([scaler.fit_transform(df_test['price'].values[i-WINDOW_SIZE:i].reshape(-1, 1)) for i in (range(WINDOW_SIZE, len(df_test['price'])))])
+    x_train = np.array(x_train_list)
+    x_test = np.array(x_test_list)
+
+    input_window = Input(shape=(WINDOW_SIZE, 1))
+    x = Conv1D(16, 3, activation="relu", padding="same")(input_window)  # 10 dims
+    x = MaxPooling1D(2, padding="same")(x)  # 5 dims
+    x = Conv1D(1, 3, activation="relu", padding="same")(x)  # 5 dims
+    encoded = MaxPooling1D(2, padding="same")(x)  # 3 dims
+
+    encoder = Model(input_window, encoded)
+
+    # 3 dimensions in the encoded layer
+
+    x = Conv1D(1, 3, activation="relu", padding="same")(encoded)  # 3 dims
+    x = UpSampling1D(2)(x)  # 6 dims
+    x = Conv1D(16, 2, activation='relu')(x)  # 5 dims
+    x = UpSampling1D(2)(x)  # 10 dims
+    decoded = Conv1D(1, 3, activation='sigmoid', padding='same')(x)  # 10 dims
+    autoencoder = Model(input_window, decoded)
+    autoencoder.summary()
+
+    optimizer = Adam(learning_rate=LEARNING_RATE)
+    autoencoder.compile(optimizer=optimizer, loss='binary_crossentropy')
+    history = autoencoder.fit(x_train, x_train,
+                              epochs=EPOCHS,
+                              batch_size=BATCH_SIZE,
+                              shuffle=SHUFFLE_TRAIN_DATA,
+                              validation_data=(x_test, x_test)
+                              )
+    autoencoder.save('part3_autoencoder.h5')
+    encoder.save('part3_encoder.h5')
+    print('Finished training. New model was saved')
+else:
+    encoder = keras.models.load_model(encoder_loc, compile=False)
+    autoencoder = keras.models.load_model(autoencoder_loc)
 
 WINDOW_SIZE = 10
 
@@ -76,6 +147,7 @@ query_result = np.array(query_result_list)
 query_result = query_result.reshape(query_result.shape[0], query_result.shape[1])
 query_df = pd.DataFrame(data=query_result, index=queryset.index[:])
 query_df.to_csv(out_query_loc, sep='\t', encoding='utf-8', header=False)
+print('Query file ready')
 
 
 dataset_result_list = []
@@ -109,6 +181,7 @@ dataset_result = np.array(dataset_result_list)
 dataset_result = dataset_result.reshape(dataset_result.shape[0], dataset_result.shape[1])
 dataset_df = pd.DataFrame(data=dataset_result, index=dataset.index[:])
 dataset_df.to_csv(out_data_loc, sep='\t', encoding='utf-8', header=False)
+print('Input file ready')
 
 
 def plot_time_series(plot_ax, y, x, title):
@@ -122,7 +195,7 @@ def plot_time_series(plot_ax, y, x, title):
 
 NUMBER_OF_SAMPLE_CURVES = 5
 DATASET_SIZE = dataset.shape[0]
-
+print('Plotting ', NUMBER_OF_SAMPLE_CURVES, ' random original/compressed curves for result comparison')
 for curve in list(random.sample(range(0, DATASET_SIZE), NUMBER_OF_SAMPLE_CURVES)):
     original_curve = dataset.iloc[curve:curve+1, :].values
     original_curve = original_curve.reshape(-1, 1)

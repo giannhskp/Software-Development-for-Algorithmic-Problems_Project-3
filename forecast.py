@@ -161,16 +161,28 @@ for curve in PREDICT_CURVES:
 
     result_size = X_test.shape[0]
     time = list(range(1, result_size+1))
-    f = plt.figure()
-    f.set_figwidth(25)
-    f.set_figheight(4)
-    plt.plot(time, test_set[curve], color='red', label='Real Curve')
-    plt.plot(time, predicted_stock_price, linestyle='dashed', color='blue', label='Predicted Curve')
     if curve < MAX_MODELS_FROM_1_CURVE and PRINT_1_CURVE_MODELS_RESULTS:
-        plt.plot(time, predicted_stock_price_2, linestyle='dotted', color='green', label='Predicted Curve from one-train-curve model')
-    plt.xticks(np.arange(0, result_size, 50), rotation=70)
-    plt.title('Prediction for curve: '+str(dataset.index[curve]))
-    plt.xlabel('Time')
-    plt.ylabel('Value')
-    plt.legend()
+        fig, ax = plt.subplots(2, 1, figsize=(25, 4))
+        fig.tight_layout()
+    else:
+        fig, ax = plt.subplots(1, 1, figsize=(25, 4))
+        fig.tight_layout()
+
+    ax[0].plot(time, test_set[curve], color='red', label='Real Curve')
+    ax[0].plot(time, predicted_stock_price, linestyle='dashed', color='blue', label='Predicted Curve')
+    ax[0].set_xticks(np.arange(0, result_size, 50), rotation=70)
+    ax[0].title.set_text('Prediction for curve: '+str(dataset.index[curve])+' using a model trained with 356 curves')
+    ax[0].set_xlabel('Time')
+    ax[0].set_ylabel('Value')
+    ax[0].legend()
+    if curve < MAX_MODELS_FROM_1_CURVE and PRINT_1_CURVE_MODELS_RESULTS:
+        ax[1].plot(time, test_set[curve], color='red', label='Real Curve')
+        ax[1].plot(time, predicted_stock_price_2, linestyle='dashed', color='green', label='Predicted Curve from one-train-curve model')
+        ax[1].set_xticks(np.arange(0, result_size, 50), rotation=70)
+        ax[1].title.set_text('Prediction for curve: '+str(dataset.index[curve])+' using a model trained with 1 curve')
+        ax[1].set_xlabel('Time')
+        ax[1].set_ylabel('Value')
+        ax[1].legend()
+
+
 plt.show()

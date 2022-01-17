@@ -57,12 +57,13 @@ training_set = dataset.iloc[:, 1:TRAIN_LENGTH+1].values
 test_set = dataset.iloc[:, TRAIN_LENGTH+1:TRAIN_LENGTH*2+1].values
 
 if TRAIN_NEW_MODEL:
+    print('Training new model...')
     EPOCHS = 5
     BATCH_SIZE = 2048
     LEARNING_RATE = 0.01
     SHUFFLE_TRAIN_DATA = True
     # scale train data
-    TRAIN_CURVES = list(range(INPUT_SIZE))
+    TRAIN_CURVES = list(range(5))
     training_set_reshaped = training_set[TRAIN_CURVES].reshape(-1, 1)
 
     sc = MinMaxScaler(feature_range=(0, 1))  # initialize scaler
@@ -98,6 +99,7 @@ if TRAIN_NEW_MODEL:
     # Compiling the RNN
     optimizer = Adam(learning_rate=LEARNING_RATE)
     model.compile(optimizer=optimizer, loss='mean_squared_error')
+    model.summary()
 
     # Fitting the RNN to the Training set
     history = model.fit(X_train, y_train,
@@ -108,6 +110,7 @@ if TRAIN_NEW_MODEL:
                         callbacks=[EarlyStopping(monitor='val_loss', patience=3, mode='min')]
                         )
     model.save('part1_new_model.h5')  # creates a HDF5 file 'part1_new_model.h5'
+    print('Finished training. New model saved to: part1_new_model.h5')
 else:
     # load saved trained model
     model = keras.models.load_model(model_loc)
@@ -162,9 +165,9 @@ for curve in PREDICT_CURVES:
     f.set_figwidth(25)
     f.set_figheight(4)
     plt.plot(time, test_set[curve], color='red', label='Real Curve')
-    plt.plot(time, predicted_stock_price, color='blue', label='Predicted Curve')
+    plt.plot(time, predicted_stock_price, linestyle='dashed', color='blue', label='Predicted Curve')
     if curve < MAX_MODELS_FROM_1_CURVE and PRINT_1_CURVE_MODELS_RESULTS:
-        plt.plot(time, predicted_stock_price_2, color='green', label='Predicted Curve from one-train-curve model')
+        plt.plot(time, predicted_stock_price_2, linestyle='dotted', color='green', label='Predicted Curve from one-train-curve model')
     plt.xticks(np.arange(0, result_size, 50), rotation=70)
     plt.title('Prediction for curve: '+str(dataset.index[curve]))
     plt.xlabel('Time')

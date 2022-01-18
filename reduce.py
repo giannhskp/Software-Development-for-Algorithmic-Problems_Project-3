@@ -21,7 +21,7 @@ data_loc = ''
 query_loc = ''
 out_data_loc = ''
 out_query_loc = ''
-
+NUMBER_OF_SAMPLE_CURVES = 4
 for i, arg in enumerate(argv):
     if arg == "-d":
         data_loc = argv[i+1]
@@ -31,6 +31,8 @@ for i, arg in enumerate(argv):
         out_data_loc = argv[i+1]
     elif arg == "-oq":
         out_query_loc = argv[i+1]
+    elif arg == "-n":
+        NUMBER_OF_SAMPLE_CURVES = int(argv[i+1])
 if data_loc == '' or query_loc == '' or out_data_loc == '' or out_query_loc == '':
     print('Wrong Arguments! \n Usage: $python reduce.py –d  <dataset> -q <queryset> -od <output_dataset_file> -oq <output_query_file>')
     sys.exit(2)
@@ -193,7 +195,6 @@ def plot_time_series(plot_ax, y, x, title):
     plot_ax.title.set_text(title)
 
 
-NUMBER_OF_SAMPLE_CURVES = 5
 DATASET_SIZE = dataset.shape[0]
 print('Plotting ', NUMBER_OF_SAMPLE_CURVES, ' random original/compressed curves for result comparison')
 for curve in list(random.sample(range(0, DATASET_SIZE), NUMBER_OF_SAMPLE_CURVES)):

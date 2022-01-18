@@ -44,7 +44,7 @@ dataset = pd.read_csv(data_loc, index_col=0, sep='\t', header=None)
 
 TRAIN_NEW_MODEL = False
 
-model_loc = 'models/part2/part2_200curves.h5'
+model_loc = 'models/part2/part2_model.h5'
 INPUT_SIZE = dataset.shape[0]
 SERIES_LENGTH = dataset.shape[1]-1
 TRAIN_LENGTH = math.floor(5*SERIES_LENGTH/10)

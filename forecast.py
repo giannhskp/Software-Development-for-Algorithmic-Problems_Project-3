@@ -43,8 +43,6 @@ else:
 model_loc = r'models/part1/part1_all_curves.h5'
 dataset = pd.read_csv(data_loc, index_col=0, sep='\t', header=None)
 
-TRAIN_NEW_MODEL = False
-PRINT_1_CURVE_MODELS_RESULTS = True
 
 INPUT_SIZE = dataset.shape[0]
 SERIES_LENGTH = dataset.shape[1]-1
@@ -56,6 +54,8 @@ MAX_MODELS_FROM_1_CURVE = 20
 training_set = dataset.iloc[:, 1:TRAIN_LENGTH+1].values
 test_set = dataset.iloc[:, TRAIN_LENGTH+1:TRAIN_LENGTH*2+1].values
 
+PRINT_1_CURVE_MODELS_RESULTS = True
+TRAIN_NEW_MODEL = False
 if TRAIN_NEW_MODEL:
     print('Training new model...')
     EPOCHS = 5
@@ -63,7 +63,7 @@ if TRAIN_NEW_MODEL:
     LEARNING_RATE = 0.01
     SHUFFLE_TRAIN_DATA = True
     # scale train data
-    TRAIN_CURVES = list(range(5))
+    TRAIN_CURVES = list(range(number_of_tseries))
     training_set_reshaped = training_set[TRAIN_CURVES].reshape(-1, 1)
 
     sc = MinMaxScaler(feature_range=(0, 1))  # initialize scaler
@@ -137,6 +137,7 @@ for curve in PREDICT_CURVES:
     X_test = np.reshape(X_test, (X_test.shape[0], X_test.shape[1], 1))
 
     predicted_stock_price = model.predict(X_test)
+
     unscaled_list = []
     for i, x in enumerate(predicted_stock_price):
         t_scale = scaler_list[i]
@@ -170,15 +171,17 @@ for curve in PREDICT_CURVES:
 
     ax[0].plot(time, test_set[curve], color='red', label='Real Curve')
     ax[0].plot(time, predicted_stock_price, linestyle='dashed', color='blue', label='Predicted Curve')
-    ax[0].set_xticks(np.arange(0, result_size, 50), rotation=70)
-    ax[0].title.set_text('Prediction for curve: '+str(dataset.index[curve])+' using a model trained with 356 curves')
+    ax[0].set_xticks(np.arange(0, result_size, 50))
+    ax[0].set_xticklabels(np.arange(0, result_size, 50), rotation=40)
+    ax[0].title.set_text('Prediction for curve: '+str(dataset.index[curve])+' using a model trained with 360 curves')
     ax[0].set_xlabel('Time')
     ax[0].set_ylabel('Value')
     ax[0].legend()
     if curve < MAX_MODELS_FROM_1_CURVE and PRINT_1_CURVE_MODELS_RESULTS:
         ax[1].plot(time, test_set[curve], color='red', label='Real Curve')
         ax[1].plot(time, predicted_stock_price_2, linestyle='dashed', color='green', label='Predicted Curve from one-train-curve model')
-        ax[1].set_xticks(np.arange(0, result_size, 50), rotation=70)
+        ax[1].set_xticks(np.arange(0, result_size, 50))
+        ax[1].set_xticklabels(np.arange(0, result_size, 50), rotation=40)
         ax[1].title.set_text('Prediction for curve: '+str(dataset.index[curve])+' using a model trained with 1 curve')
         ax[1].set_xlabel('Time')
         ax[1].set_ylabel('Value')

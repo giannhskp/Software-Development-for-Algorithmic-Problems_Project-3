@@ -14,6 +14,7 @@ data_loc = ''
 number_of_tseries = -1
 THRESHOLD = -1
 THRESHOLD_BEST_VALUE = 2.25
+PLOT_MAE = False
 
 for i, arg in enumerate(argv):
     if arg == "-d":
@@ -22,6 +23,8 @@ for i, arg in enumerate(argv):
         number_of_tseries = int(argv[i+1])
     elif arg == "-mae":
         THRESHOLD = int(argv[i+1])
+    elif arg == "-print_mae":
+        PLOT_MAE = True
 if data_loc != '':
     print('Dataset file is ', data_loc)
 else:
@@ -40,7 +43,6 @@ else:
 dataset = pd.read_csv(data_loc, index_col=0, sep='\t', header=None)
 
 TRAIN_NEW_MODEL = False
-PLOT_MAE = False
 
 model_loc = 'models/part2/part2_200curves.h5'
 INPUT_SIZE = dataset.shape[0]
@@ -57,7 +59,7 @@ test_set = dataset.iloc[:, TRAIN_LENGTH+1:TRAIN_LENGTH*2+1].values
 
 if TRAIN_NEW_MODEL:
     print('Training new model...')
-    EPOCHS = 20
+    EPOCHS = 5
     BATCH_SIZE = 2048
     LEARNING_RATE = 1e-3
     SHUFFLE_TRAIN_DATA = True

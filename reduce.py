@@ -71,7 +71,7 @@ if TRAIN_NEW_MODEL:
     # create test set, using the rest 5% of each curve
     test_set = dataset.iloc[:, TRAIN_LENGTH+1:TRAIN_LENGTH*2+1].values
 
-    scaler = MinMaxScaler()  # initialize scaler
+    scaler = MinMaxScaler()  # initialize the scaler
 
     x_test_list = []
     x_train_list = []

@@ -16,15 +16,15 @@ from tensorflow.keras.optimizers import Adam
 
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
-argv = sys.argv[1:] # get parameters from command line
-data_loc = '' # location of dataset file given by the user
-number_of_tseries = -1 # number of time series from the given dataset file that the model will make the corresponding predictions
+argv = sys.argv[1:]  # get parameters from command line
+data_loc = ''  # location of dataset file given by the user
+number_of_tseries = -1  # number of time series from the given dataset file that the model will make the corresponding predictions
 try:
     opts, args = getopt.getopt(argv, "d:n:")
 except getopt.GetoptError:
     print('Wrong Arguments! \n Usage: $python forecast.py -d <dataset> -n <number of time series selected>')
     sys.exit(2)
-for opt, arg in opts: # read parameters
+for opt, arg in opts:  # read parameters
     if opt == "-d":
         data_loc = arg
     elif opt == "-n":
@@ -43,19 +43,19 @@ model_loc = r'models/part1/part1_all_curves.h5'
 dataset = pd.read_csv(data_loc, index_col=0, sep='\t', header=None)
 
 
-INPUT_SIZE = dataset.shape[0] # the number of time series of the dataset
-SERIES_LENGTH = dataset.shape[1]-1 # the length of each time series
-TRAIN_LENGTH = math.floor(5*SERIES_LENGTH/10) # the length of each time series that will be used in train set (50%)
+INPUT_SIZE = dataset.shape[0]  # the number of time series of the dataset
+SERIES_LENGTH = dataset.shape[1]-1  # the length of each time series
+TRAIN_LENGTH = math.floor(5*SERIES_LENGTH/10)  # the length of each time series that will be used in train set (50%)
 WINDOW_SIZE = 60
-PREDICT_CURVES = list(range(number_of_tseries)) # the curves that will be predicted
+PREDICT_CURVES = list(range(number_of_tseries))  # the curves that will be predicted
 MAX_MODELS_FROM_1_CURVE = 20
 # create train set, using the first 50% of each curve
 training_set = dataset.iloc[:, 1:TRAIN_LENGTH+1].values
 # create test set, using the rest 50% of each curve
 test_set = dataset.iloc[:, TRAIN_LENGTH+1:TRAIN_LENGTH*2+1].values
 
-PRINT_1_CURVE_MODELS_RESULTS = True # load every time the correspondings one curve models and print their predictions in a graph plot
-TRAIN_NEW_MODEL = False # don't train a new model, load the saved one
+PRINT_1_CURVE_MODELS_RESULTS = True  # load every time the correspondings one curve models and print their predictions in a graph plot
+TRAIN_NEW_MODEL = False  # don't train a new model, load the saved one
 if TRAIN_NEW_MODEL:
     print('Training new model...')
     # hyper parameters
@@ -64,7 +64,7 @@ if TRAIN_NEW_MODEL:
     LEARNING_RATE = 0.01
     SHUFFLE_TRAIN_DATA = True
 
-    TRAIN_CURVES = list(range(number_of_tseries)) # the curves that will be used for the training
+    TRAIN_CURVES = list(range(number_of_tseries))  # the curves that will be used for the training
     training_set_reshaped = training_set[TRAIN_CURVES].reshape(-1, 1)
 
     sc = MinMaxScaler(feature_range=(0, 1))  # initialize the scaler
@@ -76,16 +76,17 @@ if TRAIN_NEW_MODEL:
     # This value is the next value of the time series that the model will predict.
     X_train = []
     y_train = []
-    training_size = training_set_reshaped.shape[0]
-    for i in range(WINDOW_SIZE, training_size):
-        sc.fit(training_set_reshaped[i-WINDOW_SIZE:i+1, 0].reshape(-1, 1)) # fit scaler
-        x_transformed = sc.transform(training_set_reshaped[i-WINDOW_SIZE:i, 0].reshape(-1, 1)) # apply scaling
-        y_transformed = sc.transform(training_set_reshaped[i, 0].reshape(-1, 1)) # apply scaling
-        X_train.append(x_transformed) # add the scaled window to the list
-        y_train.append(y_transformed) # add the scaled window to the list
-    X_train, y_train = np.array(X_train), np.array(y_train) # convert the lists into NumPy arrays
+    for j in range(0, len(TRAIN_CURVES)):  # for every curve of the train set
+        down_range = j*TRAIN_LENGTH+WINDOW_SIZE
+        up_range = (j+1)*TRAIN_LENGTH
+        for i in range(down_range, up_range):  # for every window of the curve
+            sc.fit(training_set_reshaped[i-WINDOW_SIZE:i+1, 0].reshape(-1, 1))  # fit scaler to this window
+            x_transformed = sc.transform(training_set_reshaped[i-WINDOW_SIZE:i, 0].reshape(-1, 1))  # apply scaling
+            y_transformed = sc.transform(training_set_reshaped[i, 0].reshape(-1, 1))  # apply scaling
+            X_train.append(x_transformed)  # add the scaled window to the list
+            y_train.append(y_transformed)  # add the scaled correct prediction to the list
+    X_train, y_train = np.array(X_train), np.array(y_train)  # convert the lists into NumPy arrays
     X_train = np.reshape(X_train, (X_train.shape[0], X_train.shape[1], 1))
-
 
     # MODEL DEFINITION #
     model = Sequential()
@@ -143,25 +144,25 @@ for curve in PREDICT_CURVES:
     X_test = []
     scaler_list = []
     for i in range(WINDOW_SIZE, inputs.shape[0]):
-        temp_scaler = MinMaxScaler(feature_range=(0, 1)) # initialize the scaler
-        transformed = temp_scaler.fit_transform(inputs[i-WINDOW_SIZE:i, 0].reshape(-1, 1)) # apply scaling
+        temp_scaler = MinMaxScaler(feature_range=(0, 1))  # initialize the scaler
+        transformed = temp_scaler.fit_transform(inputs[i-WINDOW_SIZE:i, 0].reshape(-1, 1))  # apply scaling
         # store the scaler in order to use him for the inverse_transform of the corresponding output
         scaler_list.append(temp_scaler)
-        X_test.append(transformed) # add the scaled window to the list
+        X_test.append(transformed)  # add the scaled window to the list
     # finally X_test contains all the scaled windows
-    X_test = np.array(X_test) # convert the list into NumPy array
+    X_test = np.array(X_test)  # convert the list into NumPy array
     X_test = np.reshape(X_test, (X_test.shape[0], X_test.shape[1], 1))
 
     # For each Window of X_test, model returns as output a value which corresponds to the forecast for the next value (ie the WINDOW_SIZE+1).
     predicted_stock_price = model.predict(X_test)
 
     unscaled_list = []
-    for i, x in enumerate(predicted_stock_price): # for every compressed window
+    for i, x in enumerate(predicted_stock_price):  # for every compressed window
         t_scale = scaler_list[i]  # get the scaler thas was used for the corresponding input window
-        inversed = np.array(t_scale.inverse_transform(x.reshape(-1, 1))) # unscale the output window
+        inversed = np.array(t_scale.inverse_transform(x.reshape(-1, 1)))  # unscale the output window
         unscaled_list.append(inversed)
     # finally unscaled_list contains all the unscaled predictions of each window
-    unscaled = np.array(unscaled_list) # convert the list into NumPy array
+    unscaled = np.array(unscaled_list)  # convert the list into NumPy array
     unscaled = unscaled.reshape(-1, 1)
     predicted_stock_price = unscaled
 
@@ -172,9 +173,9 @@ for curve in PREDICT_CURVES:
         model_from_one_curve = keras.models.load_model(temp_model_loc)
         predicted_stock_price_2 = model_from_one_curve.predict(X_test)
         unscaled_list = []
-        for i, x in enumerate(predicted_stock_price_2): # for every compressed window
-            t_scale = scaler_list[i] # get the scaler thas was used for the corresponding input window
-            inversed = np.array(t_scale.inverse_transform(x.reshape(-1, 1))) # unscale the output window
+        for i, x in enumerate(predicted_stock_price_2):  # for every compressed window
+            t_scale = scaler_list[i]  # get the scaler thas was used for the corresponding input window
+            inversed = np.array(t_scale.inverse_transform(x.reshape(-1, 1)))  # unscale the output window
             unscaled_list.append(inversed)
         # finally unscaled_list contains all the unscaled forecasts of each window
         unscaled = np.array(unscaled_list)

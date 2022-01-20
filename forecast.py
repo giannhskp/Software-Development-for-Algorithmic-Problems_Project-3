@@ -133,7 +133,7 @@ for curve in PREDICT_CURVES:
     dataset_test = dataset.iloc[curve:curve+1, TRAIN_LENGTH+1:TRAIN_LENGTH*2+1]
     # concatenate dataset_train and dataset_test
     dataset_total = pd.concat((dataset_train, dataset_test), axis=1)
-    # finally keep the second half of the curve
+    # finally keep the first half - WINDOW_SIZE of the curve
     inputs = dataset_total.iloc[:, dataset_total.shape[1] - dataset_test.shape[1] - WINDOW_SIZE:].values
     inputs = inputs.reshape(-1, 1)
 

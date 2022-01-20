@@ -175,7 +175,7 @@ for curve in PREDICT_CURVES:
     dataset_test = dataset.iloc[curve:curve+1, TRAIN_LENGTH+1:TRAIN_LENGTH*2+1]
     # concatenate dataset_train and dataset_test
     dataset_total = pd.concat((dataset_train, dataset_test), axis=1)
-    # finally keep the second half of the curve
+    # finally keep the first half - WINDOW_SIZE of the curve
     inputs = dataset_total.iloc[:, dataset_total.shape[1] - dataset_test.shape[1] - WINDOW_SIZE:].values
     inputs = inputs.reshape(-1, 1)
 
@@ -194,20 +194,23 @@ for curve in PREDICT_CURVES:
     X_test_pred = model.predict(X_test)
     test_mae_loss = np.mean(np.abs(X_test_pred - X_test), axis=1) # find the losses
 
+    # save again the first half - WINDOW_SIZE of the curve in order to make the plot
     test = dataset_total.iloc[:, dataset_total.shape[1] - dataset_test.shape[1] - WINDOW_SIZE:].T
     test_score_df = pd.DataFrame(index=test[WINDOW_SIZE:].index)
     test_score_df['loss'] = test_mae_loss
     test_score_df['threshold'] = THRESHOLD
-    test_score_df['anomaly'] = test_score_df.loss > test_score_df.threshold
+    test_score_df['anomaly'] = test_score_df.loss > test_score_df.threshold # spot the anomalies, based on the given threshold
     test_score_df['close'] = test[WINDOW_SIZE:]
 
     result_size = X_test.shape[0]
     time = list(range(1, result_size+1))
 
+    # save the anomalies in a list
     anomalies = test_score_df[test_score_df.anomaly == True]
     anomalies_indexes = anomalies.index-test_score_df.index[0]
     anomalies_indexes = anomalies_indexes.tolist()
     anomalies_times = [time[i] for i in anomalies_indexes]
+
     f = plt.figure()
     f.set_figwidth(20)
     f.set_figheight(5)

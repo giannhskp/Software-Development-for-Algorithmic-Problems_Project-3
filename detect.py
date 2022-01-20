@@ -9,14 +9,14 @@ from sklearn.preprocessing import StandardScaler
 from tensorflow.keras.optimizers import Adam
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
-argv = sys.argv[1:] # get parameters from command line
-data_loc = '' # location of dataset file given by the user
-number_of_tseries = -1 # number of time series from the given dataset file that the autoencoder will be applied
+argv = sys.argv[1:]  # get parameters from command line
+data_loc = ''  # location of dataset file given by the user
+number_of_tseries = -1  # number of time series from the given dataset file that the autoencoder will be applied
 THRESHOLD = -1
 THRESHOLD_BEST_VALUE = 2.25
-PLOT_MAE = False # default, don't print the mae histogram
+PLOT_MAE = False  # default, don't print the mae histogram
 
-for i, arg in enumerate(argv): # read parameters
+for i, arg in enumerate(argv):  # read parameters
     if arg == "-d":
         data_loc = argv[i+1]
     elif arg == "-n":
@@ -45,9 +45,9 @@ dataset = pd.read_csv(data_loc, index_col=0, sep='\t', header=None)
 TRAIN_NEW_MODEL = False  # don't train a new model, load the saved one
 
 model_loc = 'models/part2/part2_model.h5'
-INPUT_SIZE = dataset.shape[0] # the number of time series of the dataset
+INPUT_SIZE = dataset.shape[0]  # the number of time series of the dataset
 SERIES_LENGTH = dataset.shape[1]-1  # the length of each time series
-TRAIN_LENGTH = math.floor(5*SERIES_LENGTH/10) # the length of each time series that will be used in train set (50%)
+TRAIN_LENGTH = math.floor(5*SERIES_LENGTH/10)  # the length of each time series that will be used in train set (50%)
 
 WINDOW_SIZE = 60
 samples = list(range(number_of_tseries))
@@ -74,19 +74,19 @@ if TRAIN_NEW_MODEL:
     # (ex. first set: [0,WINDOW_SIZE], second set: [1,WINDOW_SIZE+1], ...)
     # Each set of values of X_train corresponds to a value in y_train.
     # This value is the next value of the time series.
-    sc = StandardScaler() # initialize scaler
+    sc = StandardScaler()  # initialize scaler
     X_train = []
     y_train = []
-    for j in range(0, len(TRAIN_CURVES)):
+    for j in range(0, len(TRAIN_CURVES)):  # for every curve of the train set
         down_range = j*TRAIN_LENGTH+WINDOW_SIZE
         up_range = (j+1)*TRAIN_LENGTH
-        for i in range(down_range, up_range):
-            sc.fit(training_set_reshaped[i-WINDOW_SIZE:i+1, 0].reshape(-1, 1)) # fit scaler
-            x_transformed = sc.transform(training_set_reshaped[i-WINDOW_SIZE:i, 0].reshape(-1, 1)) # apply scaling
-            y_transformed = sc.transform(training_set_reshaped[i, 0].reshape(-1, 1)) # apply scaling
-            X_train.append(x_transformed) # add the scaled window to the list
-            y_train.append(y_transformed) # add the scaled window to the list
-    X_train, y_train = np.array(X_train), np.array(y_train) # convert the lists into NumPy arrays
+        for i in range(down_range, up_range):  # for every window of the curve
+            sc.fit(training_set_reshaped[i-WINDOW_SIZE:i+1, 0].reshape(-1, 1))  # fit scaler to this window
+            x_transformed = sc.transform(training_set_reshaped[i-WINDOW_SIZE:i, 0].reshape(-1, 1))  # apply scaling
+            y_transformed = sc.transform(training_set_reshaped[i, 0].reshape(-1, 1))  # apply scaling
+            X_train.append(x_transformed)  # add the scaled window to the list
+            y_train.append(y_transformed)  # add the scaled next value of the window to the list
+    X_train, y_train = np.array(X_train), np.array(y_train)  # convert the lists into NumPy arrays
     X_train = np.reshape(X_train, (X_train.shape[0], X_train.shape[1], 1))
 
     # MODEL DEFINITION #
@@ -102,7 +102,7 @@ if TRAIN_NEW_MODEL:
     model.add(keras.layers.LSTM(units=64, return_sequences=False, activation='relu'))
     model.add(keras.layers.Dropout(rate=0.2))
     ##########################
-    model.add(keras.layers.RepeatVector(n=X_train.shape[1])) # creates a tensor of size (WINDOW_SIZE,64) which is given as input to the first LSTM layer of the decoder
+    model.add(keras.layers.RepeatVector(n=X_train.shape[1]))  # creates a tensor of size (WINDOW_SIZE,64) which is given as input to the first LSTM layer of the decoder
     ##########################
     # Decoder
     model.add(keras.layers.LSTM(units=64, return_sequences=True, activation='relu'))
@@ -136,7 +136,7 @@ else:
     # load the saved pre-trained model
     model = keras.models.load_model(model_loc)
 
-sc = StandardScaler() # initialize the scaler
+sc = StandardScaler()  # initialize the scaler
 
 if PLOT_MAE:
     # then print the mae histogram
@@ -149,12 +149,12 @@ if PLOT_MAE:
             down_range = j*TRAIN_LENGTH+WINDOW_SIZE
             up_range = (j+1)*TRAIN_LENGTH
             for i in range(down_range, up_range):
-                sc.fit(training_set_reshaped[i-WINDOW_SIZE:i+1, 0].reshape(-1, 1)) # fit scaler
-                x_transformed = sc.transform(training_set_reshaped[i-WINDOW_SIZE:i, 0].reshape(-1, 1)) # apply scaling
-                y_transformed = sc.transform(training_set_reshaped[i, 0].reshape(-1, 1)) # apply scaling
-                X_train.append(x_transformed) # add the scaled window to the list
-                y_train.append(y_transformed) # add the scaled window to the list
-        X_train, y_train = np.array(X_train), np.array(y_train) # convert the lists into NumPy arrays
+                sc.fit(training_set_reshaped[i-WINDOW_SIZE:i+1, 0].reshape(-1, 1))  # fit scaler
+                x_transformed = sc.transform(training_set_reshaped[i-WINDOW_SIZE:i, 0].reshape(-1, 1))  # apply scaling
+                y_transformed = sc.transform(training_set_reshaped[i, 0].reshape(-1, 1))  # apply scaling
+                X_train.append(x_transformed)  # add the scaled window to the list
+                y_train.append(y_transformed)  # add the scaled window to the list
+        X_train, y_train = np.array(X_train), np.array(y_train)  # convert the lists into NumPy arrays
 
     # predict on train set to find the threshold
     X_train_pred = model.predict(X_train)
@@ -184,22 +184,22 @@ for curve in PREDICT_CURVES:
     # (ex. first set: [0,WINDOW_SIZE], second set: [1,WINDOW_SIZE+1], ...)
     X_test = []
     for i in range(WINDOW_SIZE, inputs.shape[0]):
-        x_transformed = sc.fit_transform(inputs[i-WINDOW_SIZE:i, 0].reshape(-1, 1)) # apply scaling
-        X_test.append(x_transformed) # add the scaled window to the list
+        x_transformed = sc.fit_transform(inputs[i-WINDOW_SIZE:i, 0].reshape(-1, 1))  # apply scaling
+        X_test.append(x_transformed)  # add the scaled window to the list
     # finally X_test contains all the scaled windows
-    X_test = np.array(X_test) # convert the list into NumPy array
+    X_test = np.array(X_test)  # convert the list into NumPy array
     X_test = np.reshape(X_test, (X_test.shape[0], X_test.shape[1], 1))
 
     # give as input to the model the set of windows X_test in order to returns the corresponding decoded windows.
     X_test_pred = model.predict(X_test)
-    test_mae_loss = np.mean(np.abs(X_test_pred - X_test), axis=1) # find the losses
+    test_mae_loss = np.mean(np.abs(X_test_pred - X_test), axis=1)  # find the losses
 
     # save again the first half - WINDOW_SIZE of the curve in order to make the plot
     test = dataset_total.iloc[:, dataset_total.shape[1] - dataset_test.shape[1] - WINDOW_SIZE:].T
     test_score_df = pd.DataFrame(index=test[WINDOW_SIZE:].index)
     test_score_df['loss'] = test_mae_loss
     test_score_df['threshold'] = THRESHOLD
-    test_score_df['anomaly'] = test_score_df.loss > test_score_df.threshold # spot the anomalies, based on the given threshold
+    test_score_df['anomaly'] = test_score_df.loss > test_score_df.threshold  # spot the anomalies, based on the given threshold
     test_score_df['close'] = test[WINDOW_SIZE:]
 
     result_size = X_test.shape[0]
